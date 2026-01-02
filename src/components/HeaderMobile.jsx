@@ -63,15 +63,15 @@ export default function Header() {
             {/* Logo */}
             <motion.a
               href="#"
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
+              whileHover={{ scale: 1.5 }}
+              whileTap={{ scale: 3 }}
               className="flex items-center"
-              aria-label="Reivitalizar - Página inicial"
+              arial-label="Reivitalizar - Página inicial"
             >
               <img 
                 src="/assets/logo.png" 
                 alt="Reivitalizar - Limpeza de Estofados" 
-                className="h-16 sm:h-16 w-auto object-contain"
+                className="h-28 sm:h-28 w-auto object-contain"
                 loading="eager"
               />
             </motion.a>
@@ -151,7 +151,7 @@ export default function Header() {
                   <img 
                     src="/assets/logo.png" 
                     alt="Reivitalizar" 
-                    className="h-10 w-auto object-contain"
+                    className="h-25 w-auto object-contain"
                     loading="lazy"
                   />
                   <button
