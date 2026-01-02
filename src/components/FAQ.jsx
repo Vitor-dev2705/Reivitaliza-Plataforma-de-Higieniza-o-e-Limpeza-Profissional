@@ -12,7 +12,7 @@ const FAQS = [
     id: 2,
     question: 'Qual o prazo de secagem?',
     answer: 'Depende do item e das condições climáticas, mas normalmente varia entre 6 a 12 horas. Utilizamos técnicas de extração avançadas para acelerar o processo.',
-    category: 'Processo'
+    category: 'Processo w'
   },
   {
     id: 3,
