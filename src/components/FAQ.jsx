@@ -17,7 +17,7 @@ const FAQS = [
   {
     id: 3,
     question: 'Atendem em quais regiões?',
-    answer: 'Atendemos em toda a Grande São Paulo e região metropolitana. Para outras localidades, consulte-nos via WhatsApp para verificar disponibilidade.',
+    answer: 'Atendemos em Brasília e entornos.s Para outras localidades, consulte-nos via WhatsApp para verificar disponibilidade.',
     category: 'Atendimento'
   },
   {

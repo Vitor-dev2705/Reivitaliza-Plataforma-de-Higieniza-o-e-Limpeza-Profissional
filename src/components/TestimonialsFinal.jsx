@@ -9,7 +9,7 @@ const TESTIMONIALS = [
     text: 'Serviço excelente! O sofá ficou como novo e o atendimento foi perfeito. A equipe foi super pontual e cuidadosa. Recomendo muito!',
     rating: 5,
     avatar: '👩‍💼',
-    location: 'São Paulo, SP'
+    location: 'Taguatinga, DF'
   },
   {
     id: 2,
@@ -18,7 +18,7 @@ const TESTIMONIALS = [
     text: 'Profissionais extremamente cuidadosos e eficientes. Limparam todos os estofados do escritório em tempo recorde. Resultado impecável!',
     rating: 5,
     avatar: '👨‍💼',
-    location: 'Rio de Janeiro, RJ'
+    location: 'Samambaia, DF'
   },
   {
     id: 3,
@@ -27,7 +27,7 @@ const TESTIMONIALS = [
     text: 'Meu colchão tinha manchas difíceis e odores. Ficou perfeito! Produtos sem cheiro forte, ideal para quem tem crianças. Amei!',
     rating: 5,
     avatar: '👩',
-    location: 'Belo Horizonte, MG'
+    location: 'Luziania, GO'
   },
   {
     id: 4,
@@ -36,7 +36,7 @@ const TESTIMONIALS = [
     text: 'Contratei para higienizar os tapetes persas do meu escritório. Fiquei impressionado com o cuidado e a qualidade do trabalho. Nota 10!',
     rating: 5,
     avatar: '👨',
-    location: 'Brasília, DF'
+    location: 'Lago Sul, DF'
   },
   {
     id: 5,
@@ -45,7 +45,7 @@ const TESTIMONIALS = [
     text: 'Tenho 3 cachorros em casa e os estofados sofriam muito. A equipe removeu todos os pelos e odores. Simplesmente perfeito!',
     rating: 5,
     avatar: '👩‍⚕️',
-    location: 'Curitiba, PR'
+    location: 'Ceilandia, DF'
   }
 ]
 
