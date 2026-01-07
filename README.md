@@ -8,6 +8,10 @@
 ---
 ### 🔗Site
 https://reivitaliza.netlify.app/
+
+
+<img width="1599" height="738" alt="image" src="https://github.com/user-attachments/assets/4b4de2da-1871-421b-8bff-5e43a22c85e2" (https://reivitaliza.netlify.app/)/>
+
 ---
 
 ## Sobre o projeto  
