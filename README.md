@@ -1,4 +1,4 @@
-# 🧼 Reivitalizar – Plataforma de Higienização e Limpeza Profissional  
+# 🧼 Reivitaliza – Plataforma de Higienização e Limpeza Profissional  
 
 ![React](https://img.shields.io/badge/React-18.0.0-61DAFB?logo=react&logoColor=white)  
 ![Vite](https://img.shields.io/badge/Vite-4.x-646CFF?logo=vite&logoColor=white)  
