@@ -88,7 +88,7 @@ function ServicesTab() {
         <div key={svc.id} className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
           <div className="flex gap-2 mb-2">
             <input
-              className="flex-1 text-sm font-bold border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-400"
+              className="flex-1 text-sm font-bold border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-400 text-black"
               value={localText[`${svc.id}_title`] ?? svc.title ?? ''}
               onChange={e => handleText(svc.id, 'title', e.target.value)}
               placeholder="Título do serviço"
@@ -99,7 +99,7 @@ function ServicesTab() {
             </button>
           </div>
           <textarea
-            className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:border-emerald-400 resize-none"
+            className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 mb-3 focus:outline-none focus:border-emerald-400 resize-none text-black"
             rows={2}
             value={localText[`${svc.id}_description`] ?? svc.description ?? ''}
             onChange={e => handleText(svc.id, 'description', e.target.value)}
@@ -107,7 +107,7 @@ function ServicesTab() {
           />
           <div className="grid grid-cols-2 gap-2 mb-2">
             <div>
-              <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">📷 Foto Antes</p>
+              <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">📷 Foto Antes</p>   
               <UploadSlot src={svc.before} loading={uploading[`${svc.id}_before`]}
                 onUpload={f => handleUpload(svc.id, 'before', f)}
                 onRemove={() => clearServiceMedia(svc.id, 'before')} height={90} />
