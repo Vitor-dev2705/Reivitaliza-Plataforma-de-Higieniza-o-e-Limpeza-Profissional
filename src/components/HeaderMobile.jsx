@@ -64,7 +64,7 @@ function LoginModal({ onClose }) {
             <input
               type="email" required value={email} onChange={e => setEmail(e.target.value)}
               placeholder="seu@email.com"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition text-black"
             />
           </div>
           <div>
@@ -72,7 +72,7 @@ function LoginModal({ onClose }) {
             <input
               type="password" required value={password} onChange={e => setPassword(e.target.value)}
               placeholder="••••••••"
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition"
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:border-emerald-500 transition text-black"
             />
           </div>
 
