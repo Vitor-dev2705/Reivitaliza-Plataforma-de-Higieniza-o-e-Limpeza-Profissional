@@ -239,11 +239,11 @@ function ReviewsTab() {
   const [newForm,  setNewForm]  = useState(false)
   const [newData,  setNewData]  = useState({ name: '', rating: 5, text: '', photo_url: '' })
 
-  const getSupabase = () => import('../supabaseClient').then(m => m.supabase)
+  const getApi = () => import('../api')
 
   const reload = async () => {
-    const sb = await getSupabase()
-    const { data } = await sb.from('reviews').select('*').order('created_at', { ascending: false })
+    const api = await getApi()
+    const data = await api.fetchReviews()
     setReviews(data || [])
   }
 
@@ -252,22 +252,22 @@ function ReviewsTab() {
   }, [])
 
   const toggle = async (id, visible) => {
-    const sb = await getSupabase()
-    await sb.from('reviews').update({ visible: !visible }).eq('id', id)
+    const api = await getApi()
+    await api.updateReview(id, { visible: !visible })
     reload()
   }
 
   const del = async (id) => {
     if (!confirm('Deletar esta avaliação?')) return
-    const sb = await getSupabase()
-    await sb.from('reviews').delete().eq('id', id)
+    const api = await getApi()
+    await api.deleteReview(id)
     reload()
   }
 
   const create = async () => {
     if (!newData.name || !newData.text) { alert('Preencha nome e texto'); return }
-    const sb = await getSupabase()
-    await sb.from('reviews').insert([{ ...newData, source: 'manual', visible: true }])
+    const api = await getApi()
+    await api.createReview(newData)
     setNewData({ name: '', rating: 5, text: '', photo_url: '' })
     setNewForm(false)
     reload()

@@ -1,44 +1,46 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
-import { supabase, uploadFile, updateServiceField, fetchServices, saveSiteConfig, loadSiteConfig } from '../supabaseClient'
+import * as api from '../api'
+import { uploadFile } from '../supabaseClient'
 
 const Ctx = createContext(null)
 
-const DEFAULT_EXTRA_BLOCKS = []
-
 export function AdminProvider({ children }) {
-  const [session,     setSession]     = useState(null)
+  const [isAdmin,     setIsAdmin]     = useState(false)
   const [loadingAuth, setLoadingAuth] = useState(true)
   const [services,    setServices]    = useState([])
-  const [extraBlocks, setExtraBlocks] = useState(DEFAULT_EXTRA_BLOCKS)
+  const [extraBlocks, setExtraBlocks] = useState([])
   const [saving,      setSaving]      = useState(false)
   const saveTimer = useRef(null)
 
-  // ── Auth ─────────────────────────────────────────────────────────────────
+  // ── Auth: verifica token salvo ao iniciar ─────────────────────────────────
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session)
+    if (api.hasToken()) {
+      api.verifyToken()
+        .then(data => setIsAdmin(!!data))
+        .catch(() => setIsAdmin(false))
+        .finally(() => setLoadingAuth(false))
+    } else {
       setLoadingAuth(false)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, s) => setSession(s))
-    return () => subscription.unsubscribe()
+    }
   }, [])
-
-  const isAdmin = !!session
 
   const login = useCallback(async (email, password) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
-    if (error) throw error
+    await api.login(email, password)
+    setIsAdmin(true)
   }, [])
 
-  const logout = useCallback(async () => {
-    await supabase.auth.signOut()
+  const logout = useCallback(() => {
+    api.logout()
+    setIsAdmin(false)
+    setServices([])
+    setExtraBlocks([])
   }, [])
 
   // ── Carrega dados ao autenticar ───────────────────────────────────────────
   useEffect(() => {
     if (!isAdmin) return
-    fetchServices().then(setServices).catch(console.error)
-    loadSiteConfig().then(cfg => {
+    api.fetchServices().then(setServices).catch(console.error)
+    api.loadSiteConfig().then(cfg => {
       if (cfg?.extraBlocks) setExtraBlocks(cfg.extraBlocks)
     }).catch(console.error)
   }, [isAdmin])
@@ -48,7 +50,7 @@ export function AdminProvider({ children }) {
     clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(async () => {
       setSaving(true)
-      try { await saveSiteConfig({ extraBlocks: blocks }) } catch (e) { console.error(e) }
+      try { await api.saveSiteConfig({ extraBlocks: blocks }) } catch (e) { console.error(e) }
       setSaving(false)
     }, 1200)
   }, [])
@@ -58,38 +60,37 @@ export function AdminProvider({ children }) {
     const ext = file.name.split('.').pop()
     const path = `${id}_${field}_${Date.now()}.${ext}`
     const url = await uploadFile(file, path)
-    await updateServiceField(id, field, url)
+    await api.updateServiceField(id, field, url)
     setServices(prev => prev.map(s => s.id === id ? { ...s, [field]: url } : s))
     return url
   }, [])
 
   const clearServiceMedia = useCallback(async (id, field) => {
-    await updateServiceField(id, field, null)
+    await api.updateServiceField(id, field, null)
     setServices(prev => prev.map(s => s.id === id ? { ...s, [field]: null } : s))
   }, [])
 
   const addService = useCallback(async () => {
-    const { data, error } = await supabase.from('services').insert([{ title: 'Novo Serviço', description: 'Descrição do serviço.' }]).select()
-    if (error) throw error
-    setServices(prev => [...prev, data[0]])
+    const svc = await api.createService('Novo Servico', 'Descricao do servico.')
+    setServices(prev => [...prev, svc])
   }, [])
 
   const removeService = useCallback(async (id) => {
-    await supabase.from('services').delete().eq('id', id)
+    await api.deleteService(id)
     setServices(prev => prev.filter(s => s.id !== id))
   }, [])
 
   const updateServiceText = useCallback(async (id, field, value) => {
-    await updateServiceField(id, field, value)
+    await api.updateServiceField(id, field, value)
     setServices(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s))
   }, [])
 
-  // ── Extra Blocks (Canva-like) ─────────────────────────────────────────────
+  // ── Extra Blocks ──────────────────────────────────────────────────────────
   const addBlock = useCallback((type) => {
     const block = {
       id: Date.now(),
-      type,   // 'gallery' | 'media' | 'text-media'
-      title: type === 'gallery' ? 'Nova Galeria' : type === 'media' ? 'Nova Mídia' : 'Novo Bloco',
+      type,
+      title: type === 'gallery' ? 'Nova Galeria' : type === 'media' ? 'Nova Midia' : 'Novo Bloco',
       items: [],
     }
     setExtraBlocks(prev => {
@@ -149,7 +150,8 @@ export function AdminProvider({ children }) {
 
   return (
     <Ctx.Provider value={{
-      session, isAdmin, loadingAuth, login, logout, saving,
+      session: isAdmin ? { email: 'admin' } : null,
+      isAdmin, loadingAuth, login, logout, saving,
       services, uploadServiceMedia, clearServiceMedia, addService, removeService, updateServiceText,
       extraBlocks, addBlock, removeBlock, updateBlockTitle, addBlockItem, removeBlockItem, reorderBlocks,
     }}>

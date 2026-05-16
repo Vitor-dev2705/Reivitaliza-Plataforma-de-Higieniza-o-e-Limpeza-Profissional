@@ -17,7 +17,7 @@ const FAQS = [
   {
     id: 3,
     question: 'Atendem em quais regiões?',
-    answer: 'Atendemos em Brasília e entornos.s Para outras localidades, consulte-nos via WhatsApp para verificar disponibilidade.',
+    answer: 'Atendemos em Brasília e entornos. Para outras localidades, consulte-nos via WhatsApp para verificar disponibilidade.',
     category: 'Atendimento'
   },
   {
@@ -73,7 +73,7 @@ const FAQItem = ({ faq, isOpen, onToggle }) => (
     >
       <div className="flex-1">
         <div className="flex items-center gap-3 mb-2">
-          <span className="inline-block px-3 py-1 bg-sky-100 text-sky-700 text-xs font-semibold rounded-full">
+          <span className="inline-block px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">
             {faq.category}
           </span>
         </div>
@@ -166,7 +166,7 @@ export default function FAQ() {
                 }}
                 className={`px-4 py-2 rounded-full font-medium transition-all ${
                   selectedCategory === category
-                    ? 'bg-sky-600 text-white shadow-lg'
+                    ? 'bg-emerald-600 text-white shadow-lg'
                     : 'bg-white text-gray-700 hover:bg-gray-100 border border-gray-200'
                 }`}
               >
@@ -193,7 +193,7 @@ export default function FAQ() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mt-16 text-center bg-sky-50 rounded-2xl p-8 max-w-2xl mx-auto"
+          className="mt-16 text-center bg-emerald-50 rounded-2xl p-8 max-w-2xl mx-auto"
         >
           <h3 className="text-2xl font-bold text-gray-900 mb-4">
             Ainda tem dúvidas?

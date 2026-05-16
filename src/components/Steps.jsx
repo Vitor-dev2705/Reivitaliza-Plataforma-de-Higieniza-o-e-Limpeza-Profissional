@@ -47,21 +47,21 @@ const StepCard = React.memo(({ step, index, isLast }) => (
   >
     {/* Connecting line (desktop only) */}
     {!isLast && (
-      <div className="hidden lg:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-sky-200 via-sky-300 to-transparent -z-10" />
+      <div className="hidden lg:block absolute top-16 left-full w-full h-0.5 bg-gradient-to-r from-emerald-200 via-emerald-300 to-transparent -z-10" />
     )}
 
     <div className="relative group">
       {/* Card */}
-      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 hover:border-sky-200">
+      <div className="bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-gray-100 hover:border-emerald-200">
         {/* Number Badge */}
-        <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-sky-500 to-sky-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
+        <div className="absolute -top-4 -left-4 w-12 h-12 bg-gradient-to-br from-emerald-500 to-emerald-600 text-white rounded-full flex items-center justify-center font-bold text-lg shadow-lg group-hover:scale-110 transition-transform">
           {step.number}
         </div>
 
         {/* Icon */}
         <motion.div
           whileHover={{ scale: 1.1, rotate: 5 }}
-          className="inline-flex items-center justify-center w-16 h-16 bg-sky-100 text-sky-600 rounded-2xl mb-6"
+          className="inline-flex items-center justify-center w-16 h-16 bg-emerald-100 text-emerald-600 rounded-2xl mb-6"
         >
           {step.icon}
         </motion.div>
@@ -71,7 +71,7 @@ const StepCard = React.memo(({ step, index, isLast }) => (
         <p className="text-gray-600 leading-relaxed">{step.text}</p>
 
         {/* Decorative gradient */}
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-sky-400 via-emerald-400 to-sky-400 rounded-b-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-400 rounded-b-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
       </div>
     </div>
   </motion.div>
@@ -83,7 +83,7 @@ export default function Steps() {
   return (
     <section
       id="como-funciona"
-      className="py-16 sm:py-24 bg-gradient-to-b from-white via-sky-50 to-white"
+      className="py-16 sm:py-24 bg-gradient-to-b from-white via-emerald-50/40 to-white"
       aria-labelledby="steps-title"
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
