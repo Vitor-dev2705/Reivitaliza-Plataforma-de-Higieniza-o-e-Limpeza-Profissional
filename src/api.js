@@ -19,11 +19,29 @@ function authHeaders() {
 }
 
 async function request(path, options = {}) {
-  const res = await fetch(`/.netlify/functions/${path}`, {
-    headers: { 'Content-Type': 'application/json', ...authHeaders(), ...options.headers },
-    ...options,
-  })
-  const data = await res.json()
+  let res
+  try {
+    res = await fetch(`/.netlify/functions/${path}`, {
+      headers: { 'Content-Type': 'application/json', ...authHeaders(), ...options.headers },
+      ...options,
+    })
+  } catch (networkErr) {
+    throw new Error('Erro de conexao. Verifique se o servidor esta rodando.')
+  }
+
+  // Tenta parsear JSON, mas trata respostas vazias/HTML
+  let data
+  const text = await res.text()
+  try {
+    data = text ? JSON.parse(text) : {}
+  } catch {
+    // Resposta nao e JSON (404 HTML, erro do servidor, etc)
+    if (res.status === 404) {
+      throw new Error('Endpoint nao encontrado. Verifique se o netlify dev esta rodando.')
+    }
+    throw new Error(`Erro ${res.status}: Resposta inesperada do servidor.`)
+  }
+
   if (!res.ok) throw new Error(data.error || `Erro ${res.status}`)
   return data
 }

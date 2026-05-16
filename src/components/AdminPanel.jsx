@@ -234,10 +234,16 @@ function BlocksTab() {
 
 // ── Aba Avaliações ────────────────────────────────────────────────────────────
 function ReviewsTab() {
+  const { uploadFileToStorage } = useAdmin()
   const [reviews,  setReviews]  = useState([])
   const [loading,  setLoading]  = useState(true)
   const [newForm,  setNewForm]  = useState(false)
   const [newData,  setNewData]  = useState({ name: '', rating: 5, text: '', photo_url: '' })
+  const [editingId, setEditingId] = useState(null)
+  const [editData,  setEditData]  = useState({})
+  const [uploadingPhoto, setUploadingPhoto] = useState(null)
+  const photoRef = useRef()
+  const editPhotoRef = useRef()
 
   const getApi = () => import('../api')
 
@@ -264,6 +270,21 @@ function ReviewsTab() {
     reload()
   }
 
+  const handlePhotoUpload = async (file, forNew = true) => {
+    setUploadingPhoto(forNew ? 'new' : editingId)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `reviews/photo_${Date.now()}.${ext}`
+      const url = await uploadFileToStorage(file, path)
+      if (forNew) {
+        setNewData(p => ({ ...p, photo_url: url }))
+      } else {
+        setEditData(p => ({ ...p, photo_url: url }))
+      }
+    } catch (e) { alert('Erro no upload: ' + e.message) }
+    setUploadingPhoto(null)
+  }
+
   const create = async () => {
     if (!newData.name || !newData.text) { alert('Preencha nome e texto'); return }
     const api = await getApi()
@@ -273,56 +294,321 @@ function ReviewsTab() {
     reload()
   }
 
+  const startEdit = (r) => {
+    setEditingId(r.id)
+    setEditData({ name: r.name, rating: r.rating, text: r.text, photo_url: r.photo_url || '' })
+  }
+
+  const saveEdit = async () => {
+    const api = await getApi()
+    await api.updateReview(editingId, editData)
+    setEditingId(null)
+    setEditData({})
+    reload()
+  }
+
   if (loading) return <div className="flex justify-center py-8"><Spinner /></div>
 
   return (
     <div className="space-y-4">
       <SectionTitle icon="💬" label="Gerenciar Avaliações" />
+      <p className="text-xs text-gray-500 mb-2">
+        Adicione avaliações manualmente. Elas aparecem no carrossel de depoimentos para os visitantes.
+        Você pode ocultar ou excluir a qualquer momento.
+      </p>
 
       <button onClick={() => setNewForm(true)}
         className="w-full py-3 border-2 border-dashed border-emerald-300 text-emerald-700 text-sm font-bold rounded-2xl hover:bg-emerald-50 flex items-center justify-center gap-2">
-        <Plus size={16} /> Nova Avaliação Manual
+        <Plus size={16} /> Nova Avaliação
       </button>
 
-      {newForm && (
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 space-y-2">
-          <input placeholder="Nome do cliente" value={newData.name}
-            onChange={e => setNewData(p => ({ ...p, name: e.target.value }))}
-            className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none focus:border-blue-400" />
-          <textarea placeholder="Texto da avaliação" value={newData.text}
-            onChange={e => setNewData(p => ({ ...p, text: e.target.value }))}
-            className="w-full text-sm border rounded-lg px-3 py-2 focus:outline-none resize-none" rows={3} />
-          <select value={newData.rating} onChange={e => setNewData(p => ({ ...p, rating: +e.target.value }))}
-            className="w-full text-sm border rounded-lg px-3 py-2">
-            {[5,4,3,2,1].map(n => <option key={n} value={n}>{n} estrela{n>1?'s':''}</option>)}
-          </select>
-          <div className="flex gap-2">
-            <button onClick={create} className="flex-1 py-2 bg-emerald-600 text-white text-sm font-bold rounded-lg hover:bg-emerald-700">Criar</button>
-            <button onClick={() => setNewForm(false)} className="flex-1 py-2 bg-gray-300 text-gray-700 text-sm font-bold rounded-lg">Cancelar</button>
-          </div>
+      {/* Formulário de nova avaliação */}
+      <AnimatePresence>
+        {newForm && (
+          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+            className="overflow-hidden">
+            <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 space-y-3">
+              <p className="text-xs font-bold text-emerald-700 uppercase">Nova Avaliação</p>
+
+              {/* Foto do cliente */}
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => photoRef.current?.click()}
+                  className="w-14 h-14 rounded-full border-2 border-dashed border-emerald-300 flex items-center justify-center cursor-pointer overflow-hidden bg-white hover:bg-emerald-50 flex-shrink-0"
+                >
+                  {uploadingPhoto === 'new' ? (
+                    <Spinner />
+                  ) : newData.photo_url ? (
+                    <img src={newData.photo_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-lg">📷</span>
+                  )}
+                </div>
+                <div className="flex-1">
+                  <input placeholder="Nome do cliente" value={newData.name}
+                    onChange={e => setNewData(p => ({ ...p, name: e.target.value }))}
+                    className="w-full text-sm font-bold border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-400 text-black" />
+                </div>
+                <input ref={photoRef} type="file" accept="image/*" className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f, true); e.target.value = '' }} />
+              </div>
+
+              <textarea placeholder="O que o cliente disse..." value={newData.text}
+                onChange={e => setNewData(p => ({ ...p, text: e.target.value }))}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-400 resize-none text-black" rows={3} />
+
+              {/* Estrelas clicáveis */}
+              <div>
+                <label className="text-[10px] font-bold text-gray-500 uppercase mb-1 block">Nota</label>
+                <div className="flex gap-1">
+                  {[1,2,3,4,5].map(n => (
+                    <button key={n} type="button" onClick={() => setNewData(p => ({ ...p, rating: n }))}
+                      className={`text-xl transition-transform hover:scale-125 ${n <= newData.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <button onClick={create} className="flex-1 py-2.5 bg-emerald-600 text-white text-sm font-bold rounded-xl hover:bg-emerald-700 transition">Salvar Avaliação</button>
+                <button onClick={() => { setNewForm(false); setNewData({ name: '', rating: 5, text: '', photo_url: '' }) }}
+                  className="flex-1 py-2.5 bg-gray-200 text-gray-700 text-sm font-bold rounded-xl hover:bg-gray-300 transition">Cancelar</button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Estado vazio */}
+      {reviews.length === 0 && !newForm && (
+        <div className="text-center py-8 text-gray-400 text-sm bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+          <p className="text-3xl mb-2">💬</p>
+          <p className="font-semibold">Nenhuma avaliação cadastrada</p>
+          <p className="text-xs mt-1">Clique acima para adicionar depoimentos dos seus clientes.</p>
         </div>
       )}
 
-      {reviews.length === 0 && !newForm && (
-        <p className="text-center text-gray-400 text-sm py-6 bg-gray-50 rounded-2xl">Nenhuma avaliação no banco ainda.</p>
-      )}
-
+      {/* Lista de avaliações */}
       {reviews.map(r => (
-        <div key={r.id} className={`border rounded-xl p-3 text-sm ${r.visible ? 'border-green-200 bg-green-50' : 'border-gray-200 bg-gray-50 opacity-70'}`}>
-          <div className="flex justify-between mb-1">
-            <span className="font-bold text-gray-800">{r.name}</span>
-            <span className="text-yellow-500 text-xs">{'★'.repeat(r.rating)}{'☆'.repeat(5-r.rating)}</span>
-          </div>
-          <p className="text-gray-600 text-xs italic mb-2 line-clamp-2">"{r.text}"</p>
-          <div className="flex gap-2">
-            <button onClick={() => toggle(r.id, r.visible)}
-              className={`text-xs px-3 py-1 rounded-lg font-bold ${r.visible ? 'bg-green-600 text-white' : 'bg-gray-400 text-white'}`}>
-              {r.visible ? '👁 Visível' : '🙈 Oculto'}
-            </button>
-            <button onClick={() => del(r.id)} className="text-xs px-3 py-1 rounded-lg bg-red-600 text-white font-bold">🗑 Deletar</button>
-          </div>
+        <div key={r.id} className={`border rounded-2xl p-4 text-sm transition-all ${
+          r.visible ? 'border-emerald-200 bg-white shadow-sm' : 'border-gray-200 bg-gray-50 opacity-60'
+        }`}>
+          {editingId === r.id ? (
+            // MODO EDIÇÃO
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div
+                  onClick={() => editPhotoRef.current?.click()}
+                  className="w-12 h-12 rounded-full border-2 border-dashed border-emerald-300 flex items-center justify-center cursor-pointer overflow-hidden bg-emerald-50 flex-shrink-0"
+                >
+                  {uploadingPhoto === editingId ? (
+                    <Spinner />
+                  ) : editData.photo_url ? (
+                    <img src={editData.photo_url} alt="" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-sm">📷</span>
+                  )}
+                </div>
+                <input value={editData.name} onChange={e => setEditData(p => ({ ...p, name: e.target.value }))}
+                  className="flex-1 text-sm font-bold border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-400 text-black" />
+                <input ref={editPhotoRef} type="file" accept="image/*" className="hidden"
+                  onChange={e => { const f = e.target.files?.[0]; if (f) handlePhotoUpload(f, false); e.target.value = '' }} />
+              </div>
+              <textarea value={editData.text} onChange={e => setEditData(p => ({ ...p, text: e.target.value }))}
+                className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-400 resize-none text-black" rows={3} />
+              <div className="flex gap-1">
+                {[1,2,3,4,5].map(n => (
+                  <button key={n} type="button" onClick={() => setEditData(p => ({ ...p, rating: n }))}
+                    className={`text-xl transition-transform hover:scale-125 ${n <= editData.rating ? 'text-yellow-400' : 'text-gray-300'}`}>
+                    ★
+                  </button>
+                ))}
+              </div>
+              <div className="flex gap-2">
+                <button onClick={saveEdit} className="flex-1 py-2 bg-emerald-600 text-white text-xs font-bold rounded-lg hover:bg-emerald-700">Salvar</button>
+                <button onClick={() => setEditingId(null)} className="flex-1 py-2 bg-gray-200 text-gray-700 text-xs font-bold rounded-lg">Cancelar</button>
+              </div>
+            </div>
+          ) : (
+            // MODO VISUALIZAÇÃO
+            <>
+              <div className="flex items-start gap-3 mb-2">
+                {r.photo_url ? (
+                  <img src={r.photo_url} alt={r.name} className="w-10 h-10 rounded-full object-cover border border-emerald-200 flex-shrink-0" />
+                ) : (
+                  <div className="w-10 h-10 rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
+                    {r.name?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-gray-800 truncate">{r.name}</span>
+                    <span className="text-yellow-400 text-xs flex-shrink-0 ml-2">
+                      {'★'.repeat(r.rating)}{'☆'.repeat(5 - r.rating)}
+                    </span>
+                  </div>
+                  <p className="text-gray-600 text-xs italic mt-1 line-clamp-2">"{r.text}"</p>
+                </div>
+              </div>
+              <div className="flex gap-2 mt-3 pl-13">
+                <button onClick={() => toggle(r.id, r.visible)}
+                  className={`text-[11px] px-3 py-1.5 rounded-lg font-bold transition ${
+                    r.visible ? 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200' : 'bg-gray-200 text-gray-600 hover:bg-gray-300'
+                  }`}>
+                  {r.visible ? '👁 Visível' : '🙈 Oculto'}
+                </button>
+                <button onClick={() => startEdit(r)}
+                  className="text-[11px] px-3 py-1.5 rounded-lg font-bold bg-blue-50 text-blue-600 hover:bg-blue-100 transition">
+                  ✏️ Editar
+                </button>
+                <button onClick={() => del(r.id)}
+                  className="text-[11px] px-3 py-1.5 rounded-lg font-bold bg-red-50 text-red-600 hover:bg-red-100 transition ml-auto">
+                  🗑
+                </button>
+              </div>
+            </>
+          )}
         </div>
       ))}
+
+      {/* Contagem */}
+      {reviews.length > 0 && (
+        <p className="text-[10px] text-gray-400 text-center pt-2">
+          {reviews.filter(r => r.visible).length} visível{reviews.filter(r => r.visible).length !== 1 ? 'is' : ''} de {reviews.length} total
+        </p>
+      )}
+    </div>
+  )
+}
+
+// ── Aba Vídeo / Impermeabilização ────────────────────────────────────────────
+function VideoTab() {
+  const { siteConfig, updateSiteConfig, uploadFileToStorage } = useAdmin()
+  const [uploading, setUploading] = useState(false)
+  const [localText, setLocalText] = useState({})
+  const fileRef = useRef()
+
+  const videoData = siteConfig?.videoSection || {}
+
+  const handleVideoUpload = async (file) => {
+    setUploading(true)
+    try {
+      const ext = file.name.split('.').pop()
+      const path = `video/impermeabilizacao_${Date.now()}.${ext}`
+      const url = await uploadFileToStorage(file, path)
+      await updateSiteConfig({ videoSection: { ...videoData, videoUrl: url } })
+    } catch (e) { alert('Erro no upload: ' + e.message) }
+    setUploading(false)
+  }
+
+  const handleText = (field, value) => {
+    setLocalText(p => ({ ...p, [field]: value }))
+    clearTimeout(window[`_vtimer_${field}`])
+    window[`_vtimer_${field}`] = setTimeout(() => {
+      updateSiteConfig({ videoSection: { ...videoData, ...localText, [field]: value } }).catch(console.error)
+    }, 800)
+  }
+
+  const currentTitle = localText.title ?? videoData.title ?? 'Nós cuidamos do seu investimento'
+  const currentDesc = localText.description ?? videoData.description ?? 'Impermeabilização profissional cria uma barreira contra líquidos, sujeira e manchas, preservando cores, prolongando a vida útil dos tecidos e facilitando a limpeza do dia a dia.'
+  const currentHighlight = localText.highlight ?? videoData.highlight ?? 'investimento'
+
+  return (
+    <div className="space-y-4">
+      <SectionTitle icon={<Video size={16} />} label="Seção de Vídeo (Impermeabilização)" />
+      <p className="text-xs text-gray-500 mb-3">
+        Edite o vídeo, título e descrição da seção de impermeabilização que aparece no site.
+      </p>
+
+      {/* Upload do vídeo */}
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4">
+        <p className="text-[10px] font-bold text-gray-500 uppercase mb-2">🎬 Vídeo Principal</p>
+        <div
+          onClick={() => !uploading && fileRef.current?.click()}
+          className={`relative rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer overflow-hidden transition-all h-[200px] ${
+            videoData.videoUrl ? 'border-transparent' : 'border-emerald-300 bg-emerald-50 hover:bg-emerald-100'
+          }`}
+        >
+          {uploading && (
+            <div className="absolute inset-0 bg-white/80 flex items-center justify-center z-10">
+              <Spinner />
+              <span className="ml-2 text-sm text-emerald-600 font-medium">Enviando vídeo...</span>
+            </div>
+          )}
+          {videoData.videoUrl ? (
+            <>
+              <video src={videoData.videoUrl} className="w-full h-full object-cover absolute inset-0" muted playsInline autoPlay loop />
+              <button onClick={e => { e.stopPropagation(); fileRef.current?.click() }}
+                className="absolute bottom-2 left-2 z-10 bg-black/60 text-white text-xs px-3 py-1.5 rounded-lg font-bold">
+                🔄 Trocar Vídeo
+              </button>
+            </>
+          ) : (
+            <div className="text-center">
+              <p className="text-3xl mb-2">🎬</p>
+              <p className="text-xs text-gray-400 font-bold">Clique para enviar vídeo</p>
+              <p className="text-[10px] text-gray-300 mt-1">MP4, MOV, WebM</p>
+            </div>
+          )}
+          <input ref={fileRef} type="file" accept="video/*" className="hidden"
+            onChange={e => { const f = e.target.files?.[0]; if (f) handleVideoUpload(f); e.target.value = '' }} />
+        </div>
+        {!videoData.videoUrl && (
+          <p className="text-[10px] text-gray-400 mt-2 text-center">
+            Sem vídeo personalizado — usando o vídeo padrão do site.
+          </p>
+        )}
+      </div>
+
+      {/* Textos */}
+      <div className="bg-gray-50 border border-gray-200 rounded-2xl p-4 space-y-3">
+        <p className="text-[10px] font-bold text-gray-500 uppercase mb-1">✏️ Textos da Seção</p>
+
+        <div>
+          <label className="text-[10px] font-semibold text-gray-500 mb-1 block">Título</label>
+          <input
+            className="w-full text-sm font-bold border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-400 text-black"
+            value={currentTitle}
+            onChange={e => handleText('title', e.target.value)}
+            placeholder="Nós cuidamos do seu investimento"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-semibold text-gray-500 mb-1 block">Palavra em destaque (verde)</label>
+          <input
+            className="w-full text-sm border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-400 text-black"
+            value={currentHighlight}
+            onChange={e => handleText('highlight', e.target.value)}
+            placeholder="investimento"
+          />
+        </div>
+
+        <div>
+          <label className="text-[10px] font-semibold text-gray-500 mb-1 block">Descrição</label>
+          <textarea
+            className="w-full text-xs border border-gray-200 rounded-lg px-3 py-2 focus:outline-none focus:border-emerald-400 resize-none text-black"
+            rows={4}
+            value={currentDesc}
+            onChange={e => handleText('description', e.target.value)}
+            placeholder="Texto descritivo sobre impermeabilização..."
+          />
+        </div>
+      </div>
+
+      {/* Preview */}
+      <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4">
+        <p className="text-[10px] font-bold text-emerald-600 uppercase mb-2">👁 Preview do título</p>
+        <p className="text-lg font-extrabold text-gray-900">
+          {currentTitle.split(currentHighlight).map((part, i, arr) => (
+            <React.Fragment key={i}>
+              {part}
+              {i < arr.length - 1 && <span className="text-green-700">{currentHighlight}</span>}
+            </React.Fragment>
+          ))}
+        </p>
+      </div>
     </div>
   )
 }
@@ -330,6 +616,7 @@ function ReviewsTab() {
 // ── Main Panel ────────────────────────────────────────────────────────────────
 const TABS = [
   { id: 'services', label: '🧹 Serviços'   },
+  { id: 'video',    label: '🎬 Vídeo'      },
   { id: 'blocks',   label: '🖼️ Seções'     },
   { id: 'reviews',  label: '💬 Avaliações' },
 ]
@@ -387,6 +674,7 @@ export default function AdminPanel({ onClose }) {
           <AnimatePresence mode="wait">
             <motion.div key={tab} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }} transition={{ duration: 0.15 }}>
               {tab === 'services' && <ServicesTab />}
+              {tab === 'video'    && <VideoTab />}
               {tab === 'blocks'   && <BlocksTab />}
               {tab === 'reviews'  && <ReviewsTab />}
             </motion.div>
@@ -396,7 +684,7 @@ export default function AdminPanel({ onClose }) {
         {/* Footer */}
         <div className="border-t border-gray-100 py-3 px-5 bg-gray-50 flex-shrink-0">
           <p className="text-[11px] text-gray-400 text-center">
-            ☁️ Imagens → Supabase Storage · Dados → Banco de dados Supabase
+            ☁️ Mídias → Supabase Storage · Dados → Neon PostgreSQL
           </p>
         </div>
       </motion.div>

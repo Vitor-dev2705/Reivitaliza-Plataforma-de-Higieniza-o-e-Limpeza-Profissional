@@ -9,6 +9,7 @@ export function AdminProvider({ children }) {
   const [loadingAuth, setLoadingAuth] = useState(true)
   const [services,    setServices]    = useState([])
   const [extraBlocks, setExtraBlocks] = useState([])
+  const [siteConfig,  setSiteConfig]  = useState({})
   const [saving,      setSaving]      = useState(false)
   const saveTimer = useRef(null)
 
@@ -41,19 +42,40 @@ export function AdminProvider({ children }) {
     if (!isAdmin) return
     api.fetchServices().then(setServices).catch(console.error)
     api.loadSiteConfig().then(cfg => {
+      setSiteConfig(cfg || {})
       if (cfg?.extraBlocks) setExtraBlocks(cfg.extraBlocks)
     }).catch(console.error)
   }, [isAdmin])
+
+  // ── Update site config (merge parcial) ���────────────────────────────────────
+  const updateSiteConfig = useCallback(async (partial) => {
+    setSaving(true)
+    try {
+      const newConfig = { ...siteConfig, ...partial }
+      setSiteConfig(newConfig)
+      await api.saveSiteConfig(newConfig)
+    } catch (e) { console.error(e) }
+    setSaving(false)
+  }, [siteConfig])
+
+  // ── Upload file to Supabase Storage (wrapper) ─────────────────────────────
+  const uploadFileToStorage = useCallback(async (file, path) => {
+    return await uploadFile(file, path)
+  }, [])
 
   // ── Auto-save extraBlocks ─────────────────────────────────────────────────
   const persistBlocks = useCallback((blocks) => {
     clearTimeout(saveTimer.current)
     saveTimer.current = setTimeout(async () => {
       setSaving(true)
-      try { await api.saveSiteConfig({ extraBlocks: blocks }) } catch (e) { console.error(e) }
+      try {
+        const newConfig = { ...siteConfig, extraBlocks: blocks }
+        setSiteConfig(newConfig)
+        await api.saveSiteConfig(newConfig)
+      } catch (e) { console.error(e) }
       setSaving(false)
     }, 1200)
-  }, [])
+  }, [siteConfig])
 
   // ── Services ──────────────────────────────────────────────────────────────
   const uploadServiceMedia = useCallback(async (id, field, file) => {
@@ -153,6 +175,7 @@ export function AdminProvider({ children }) {
       session: isAdmin ? { email: 'admin' } : null,
       isAdmin, loadingAuth, login, logout, saving,
       services, uploadServiceMedia, clearServiceMedia, addService, removeService, updateServiceText,
+      siteConfig, updateSiteConfig, uploadFileToStorage,
       extraBlocks, addBlock, removeBlock, updateBlockTitle, addBlockItem, removeBlockItem, reorderBlocks,
     }}>
       {children}

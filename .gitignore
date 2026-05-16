@@ -2,5 +2,5 @@
 node_modules/
 /.env
 
-# Local Netlify folder
+# Local Netlify folder (cache/state interno)
 .netlify

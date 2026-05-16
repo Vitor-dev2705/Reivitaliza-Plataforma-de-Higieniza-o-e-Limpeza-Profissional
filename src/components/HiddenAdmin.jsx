@@ -20,7 +20,7 @@ function LoginModal({ onClose, onSuccess }) {
       await login(email, password)
       onSuccess()
     } catch (err) {
-      setError('Email ou senha incorretos.')
+      setError(err.message || 'Email ou senha incorretos.')
     } finally {
       setLoading(false)
     }
