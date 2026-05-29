@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Star, ChevronLeft, ChevronRight, Quote } from "lucide-react";
 
 // Link público para avaliar no Google
-const GOOGLE_REVIEW_URL = "https://g.page/r/CXd-5puVhaP-EAE/review";
+const GOOGLE_REVIEW_URL = "https://g.page/r/Cdvms43-e9BTEAE/review";
 
 export default function TestimonialsFinal() {
   const [reviews, setReviews] = useState([]);
@@ -312,6 +312,7 @@ export default function TestimonialsFinal() {
             disabled={selectedRating === 0}
             onClick={handleRedirectToGoogle}
             className="px-8 py-4 bg-emerald-600 text-white rounded-full font-semibold hover:bg-emerald-700 transition disabled:opacity-40 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+            
           >
             Avaliar no Google
           </button>
