@@ -1,6 +1,7 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { FaWhatsapp } from "react-icons/fa";
+import { FaInstagram } from "react-icons/fa";
 
 const WHATSAPP_NUMBER = "5561981582388";
 const WHATSAPP_MESSAGE = "Olá! Gostaria de solicitar um orçamento.";
@@ -10,6 +11,10 @@ export default function Hero() {
     const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(WHATSAPP_MESSAGE)}`;
     window.open(url, "_blank", "noopener,noreferrer");
   };
+  const handleInstagramClick = () => {
+    const instagramUrl = "https://www.instagram.com/reivitaliza_/";
+    window.open(instagramUrl, "_blank", "noopener,noreferrer");
+  }
 
   const scrollToServices = () => {
     const servicesSection = document.getElementById("servicos");
@@ -103,6 +108,14 @@ export default function Hero() {
             >
               <FaWhatsapp className="text-2xl group-hover:rotate-12 transition-transform" />
               <span>Solicitar Orçamento</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleInstagramClick}
+              className="group inline-flex -center gap-3 px-8 py-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300"
+            >
+              <FaInstagram className="text-2xl group-hover:rotate-12 transition-transform" />
             </motion.button>
 
             <motion.button
